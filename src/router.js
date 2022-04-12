@@ -16,18 +16,34 @@ const mockUser = {
 }
 
 router.post("/login", (req, res) => {
-  const token = jwt.sign({ username: mockUser.username }, "secret")
-  res.json({ token })
+  if (
+    req.body.username === mockUser.username &&
+    req.body.password === mockUser.password
+  ) {
+    const payload = {
+      username: mockUser.username,
+      age: mockUser.profile.age,
+      fred: "bob",
+    }
+
+    const token = jwt.sign(payload, secret)
+    res.json({ token })
+  } else {
+    res.status(400)
+    res.json({ error: "invalid credentials" })
+  }
 })
 
 router.get("/profile", (req, res) => {
-  const token = req.headers["authorization"]
+  const authorisation = req.headers["authorization"]
+  const parts = authorisation.split("")
+  const token = parts[1]
   try {
     const payload = jwt.verify(token, secret)
-    res.json({profile: mockUser.profile})
+    res.json({ profile: mockUser.profile })
   } catch (e) {
     res.status(401)
-    res.json({error: 'token not valid'})
+    res.json({ error: "token not valid" })
     return
   }
   res.json({ test: true })
